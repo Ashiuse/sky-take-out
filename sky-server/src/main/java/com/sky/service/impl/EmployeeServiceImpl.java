@@ -68,16 +68,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void save(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
 
-        //拷贝属性
+        //拷贝属性(将前端中的属性拷贝到后端中)
+        //DTO为前端提交的数据，employee为后端的数据,DTO是entry的一部分
         BeanUtils.copyProperties(employeeDTO, employee);
 
         //设置其他属性
         employee.setStatus(StatusConstant.ENABLE);//账号状态(默认:启用)
         employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));//密码(初始密码:123456)
+        /*
+        已经通过切面类注解完成
         employee.setCreateTime(LocalDateTime.now());//创建时间
         employee.setUpdateTime(LocalDateTime.now());//修改时间
         employee.setCreateUser(BaseContext.getCurrentId());//创建人ID
         employee.setUpdateUser(BaseContext.getCurrentId());//修改人ID
+        */
 
         employeeMapper.insert(employee);
 
@@ -137,8 +141,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
 
+        /*
         employee.setUpdateTime(LocalDateTime.now());
         employee.setUpdateUser(BaseContext.getCurrentId());
+        */
 
         employeeMapper.update(employee);
 
