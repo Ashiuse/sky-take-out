@@ -33,8 +33,9 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 新增菜品和对应口味
-     * @Param dishDTO
+     *
      * @return
+     * @Param dishDTO
      */
     @Transactional
     public void saveWithFlavor(DishDTO dishDTO) {
@@ -154,6 +155,7 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 根据分类查询菜品
+     *
      * @param categoryId
      * @return
      */
