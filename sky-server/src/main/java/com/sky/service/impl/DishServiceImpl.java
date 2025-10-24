@@ -34,8 +34,8 @@ public class DishServiceImpl implements DishService {
     /**
      * 新增菜品和对应口味
      *
+     * @param dishDTO
      * @return
-     * @Param dishDTO
      */
     @Transactional
     public void saveWithFlavor(DishDTO dishDTO) {
@@ -170,6 +170,7 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 菜品起售停售
+     *
      * @param status
      * @param id
      * @return
@@ -184,7 +185,6 @@ public class DishServiceImpl implements DishService {
 
         dishMapper.update(dish);
     }
-
 
 
 }
