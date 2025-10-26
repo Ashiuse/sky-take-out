@@ -43,13 +43,13 @@ public interface SetmealMapper {
     void insert(Setmeal setmeal);
 
     /**
-     * 根据id查询套餐
+     * 根据套餐id查询套餐
      *
-     * @param id
+     * @param setmealId
      * @return
      */
-    @Select("select * from setmeal where id = #{id}")
-    Setmeal getById(Long id);
+    @Select("select * from setmeal where id = #{setmealId}")
+    Setmeal getById(Long setmealId);
 
     /**
      * 根据id删除套餐
@@ -60,14 +60,6 @@ public interface SetmealMapper {
     @Delete("delete from setmeal where id = #{setmealId}")
     void deleteById(Long setmealId);
 
-    /**
-     * 根据套餐id查询套餐数据
-     *
-     * @param setmealId
-     * @return
-     */
-    @Select("select * from setmeal where id = #{setmealId}")
-    Setmeal getSetmealById(Long setmealId);
 
     /**
      * 修改套餐
