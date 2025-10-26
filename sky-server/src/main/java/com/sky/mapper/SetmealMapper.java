@@ -62,7 +62,7 @@ public interface SetmealMapper {
 
 
     /**
-     * 修改套餐
+     * 根据id修改套餐
      *
      * @param setmeal
      * @return
