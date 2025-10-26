@@ -34,8 +34,6 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
-    @Autowired
-    private SetmealMapper setmealMapper;
 
     /**
      * 新增菜品和对应口味
