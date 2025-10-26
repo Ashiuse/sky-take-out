@@ -14,7 +14,7 @@ public interface ShoppingCartMapper {
      * 条件查询
      *
      * @param shoppingCart
-     * @return
+     * @return List<ShoppingCart>
      */
     List<ShoppingCart> list(ShoppingCart shoppingCart);
 

@@ -42,7 +42,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
         if (shoppingCartList != null && shoppingCartList.size() == 1) {
             //购物车中已经存在该商品,则商品数量加1
-            ShoppingCart cartService = shoppingCartList.get(0);
+            ShoppingCart cartService = shoppingCartList.get(0);//找到购物车条目(就一个)中的该商品对象
             cartService.setNumber(cartService.getNumber() + 1);
             //更新购物车数据
             shoppingCartMapper.updateNumberById(cartService);
@@ -70,8 +70,18 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             //最终将该商品所有数据插入购物车
             shoppingCartMapper.insert(shoppingCart);
         }
+    }
 
-
+    /**
+     * 查看购物车
+     *
+     * @return
+     */
+    @Override
+    public List<ShoppingCart> showShoppingCart() {
+        return shoppingCartMapper.list(ShoppingCart.builder().
+                userId(BaseContext.getCurrentId()).
+                build());
     }
 
 
