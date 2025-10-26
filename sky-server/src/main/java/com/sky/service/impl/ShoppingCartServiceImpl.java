@@ -40,12 +40,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCart.setUserId(BaseContext.getCurrentId());
         //判断当前商品是否在购物车中
         List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
-        if (shoppingCartList != null && shoppingCartList.size() == 1) {
+        if (shoppingCartList != null && shoppingCartList.size() > 0) {
             //购物车中已经存在该商品,则商品数量加1
-            ShoppingCart cartService = shoppingCartList.get(0);//找到购物车条目(就一个)中的该商品对象
-            cartService.setNumber(cartService.getNumber() + 1);
+            shoppingCart = shoppingCartList.get(0);//找到购物车条目(就一个)中的该商品对象
+            shoppingCart.setNumber(shoppingCart.getNumber() + 1);
             //更新购物车数据
-            shoppingCartMapper.updateNumberById(cartService);
+            shoppingCartMapper.updateNumberById(shoppingCart);
         } else {
             //购物车中不存在该商品,则添加到购物车中
             Long dishId = shoppingCartDTO.getDishId();
@@ -92,8 +92,34 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCartMapper.deleteByUserId(BaseContext.getCurrentId());
     }
 
+    /**
+     * 批量删除购物车中的一个商品
+     *
+     * @param shoppingCartDTO
+     */
+    @Override
+    public void deleteShoppingCart(ShoppingCartDTO shoppingCartDTO) {
+        //复制购物车数据
+        ShoppingCart shoppingCart = new ShoppingCart();
+        BeanUtils.copyProperties(shoppingCartDTO, shoppingCart);
 
-
+        //设置购物车所属的用户id
+        shoppingCart.setUserId(BaseContext.getCurrentId());
+        //判断当前商品是否在购物车中
+        List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
+        if (shoppingCartList != null && shoppingCartList.size() > 0) {
+            //购物车中已经存在该商品,则商品数量减1
+            shoppingCart = shoppingCartList.get(0);
+            Integer number = shoppingCart.getNumber();
+            if (number > 1) {
+                shoppingCart.setNumber(shoppingCart.getNumber() - 1);
+            } else {
+                shoppingCartMapper.deleteById(shoppingCart.getId());
+            }
+        }
+        //更新购物车数据
+        shoppingCartMapper.updateNumberById(shoppingCart);
+    }
 
 
 }
