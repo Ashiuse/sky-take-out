@@ -9,17 +9,20 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
     /**
      * 插入订单数据
+     *
      * @param order
      */
     void insert(Orders order);
 
     /**
      * 根据订单号查询订单
+     *
      * @param orderNumber
      */
     @Select("select * from orders where number = #{orderNumber}")
@@ -27,6 +30,7 @@ public interface OrderMapper {
 
     /**
      * 根据订单号和用户id查询订单
+     *
      * @param orderNumber
      * @param userId
      */
@@ -35,19 +39,20 @@ public interface OrderMapper {
 
     /**
      * 修改订单信息
+     *
      * @param orders
      */
     void update(Orders orders);
 
     /**
      * 修改订单状态
-     *
      */
     @Update("update orders set status = #{orderStatus},pay_status = #{orderPaidStatus} ,checkout_time = #{check_out_time} where id = #{id}")
     void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime check_out_time, Long id);
 
     /**
      * 分页条件查询
+     *
      * @param ordersPageQueryDTO
      */
     Page<Orders> pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
@@ -55,6 +60,7 @@ public interface OrderMapper {
 
     /**
      * 根据id查询订单
+     *
      * @param id
      * @return
      */
@@ -63,6 +69,7 @@ public interface OrderMapper {
 
     /**
      * 根据状态统计订单数量
+     *
      * @param status
      */
     @Select("select count(id) from orders where status = #{status}")
@@ -70,13 +77,18 @@ public interface OrderMapper {
 
     /**
      * 根据状态和下单时间查询订单
+     *
      * @param status
      * @param orderTime
      */
     @Select("select * from orders where status = #{status} and order_time < #{orderTime}")
     List<Orders> getByStatusAndOrderTime(Integer status, LocalDateTime orderTime);
 
-
-
+    /**
+     * 根据动态条件统计营业额
+     *
+     * @param map
+     */
+    Double sumByMap(Map map);
 
 }
