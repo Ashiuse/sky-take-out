@@ -5,15 +5,19 @@ import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,6 +34,8 @@ public class ReportServiceImpl implements ReportService {
     private OrderMapper orderMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 根据时间区间查询营业额
@@ -127,15 +133,16 @@ public class ReportServiceImpl implements ReportService {
 
     /**
      * 根据时间区间统计订单数量
+     *
      * @param begin
      * @param end
      * @return
      */
-    public OrderReportVO getOrderStatistics(LocalDate begin, LocalDate end){
+    public OrderReportVO getOrderStatistics(LocalDate begin, LocalDate end) {
         List<LocalDate> dateList = new ArrayList<>();
         dateList.add(begin);
 
-        while (!begin.equals(end)){
+        while (!begin.equals(end)) {
             begin = begin.plusDays(1);
             dateList.add(begin);
         }
@@ -148,7 +155,7 @@ public class ReportServiceImpl implements ReportService {
         for (LocalDate date : dateList) {
             LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
             LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
-            
+
             Integer orderCount = getOrderCount(beginTime, endTime, null);
             Integer validOrderCount = getOrderCount(beginTime, endTime, Orders.COMPLETED);
 
@@ -160,7 +167,7 @@ public class ReportServiceImpl implements ReportService {
         Integer validOrderCount = validOrderCountList.stream().reduce(Integer::sum).get();
         //订单完成率
         Double orderCompletionRate = 0.0;
-        if(totalOrderCount != 0){
+        if (totalOrderCount != 0) {
             orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
         }
 
@@ -177,6 +184,7 @@ public class ReportServiceImpl implements ReportService {
 
     /**
      * 根据时间区间统计指定状态的订单数量
+     *
      * @param beginTime
      * @param endTime
      * @param status
@@ -185,18 +193,19 @@ public class ReportServiceImpl implements ReportService {
     private Integer getOrderCount(LocalDateTime beginTime, LocalDateTime endTime, Integer status) {
         Map map = new HashMap();
         map.put("status", status);
-        map.put("begin",beginTime);
+        map.put("begin", beginTime);
         map.put("end", endTime);
         return orderMapper.countByMap(map);
     }
 
     /**
      * 查询指定时间区间内的销量排名top10
+     *
      * @param begin
      * @param end
      * @return
      */
-    public SalesTop10ReportVO getSalesTop10(LocalDate begin, LocalDate end){
+    public SalesTop10ReportVO getSalesTop10(LocalDate begin, LocalDate end) {
         LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
         LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
 
@@ -211,6 +220,58 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
+    /**
+     * 导出近三十天运营数据报表
+     *
+     * @param response
+     */
+    public void exportBusinessData(HttpServletResponse response) {
+        LocalDate begin = LocalDate.now().minusDays(30);//今天之前的30天
+        LocalDate end = LocalDate.now().minusDays(1);//昨天
 
+        //查询概览数据,提供模板文件
+        BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(begin, LocalTime.MIN), LocalDateTime.of(end, LocalTime.MAX));
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+
+        try {
+            //基于模板文件创建Excel对象
+            XSSFWorkbook excel = new XSSFWorkbook(inputStream);
+            //获取第一个Sheet,填充概览数据
+            XSSFSheet sheet = excel.getSheet("Sheet1");
+            sheet.getRow(1).getCell(1).setCellValue("时间：" + begin + "至" + end);
+            XSSFRow row = sheet.getRow(3);//获取第4行
+            row.getCell(2).setCellValue(businessData.getTurnover());//营业额
+            row.getCell(4).setCellValue(businessData.getOrderCompletionRate());//订单完成率
+            row.getCell(6).setCellValue(businessData.getNewUsers());//新增用户数
+            row = sheet.getRow(4);//获取第5行
+            row.getCell(2).setCellValue(businessData.getValidOrderCount());//有效订单数
+            row.getCell(4).setCellValue(businessData.getUnitPrice());//平均客单价
+
+            //填充每一天的数据
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = begin.plusDays(i);
+                //查询该天的明细数据
+                businessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+                row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(businessData.getTurnover());
+                row.getCell(3).setCellValue(businessData.getValidOrderCount());
+                row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+                row.getCell(5).setCellValue(businessData.getUnitPrice());
+            }
+            //输出Excel文件到客户端
+            ServletOutputStream out = response.getOutputStream();
+            excel.write(out);
+
+            //关闭资源
+            out.flush();
+            out.close();
+            excel.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
 }
