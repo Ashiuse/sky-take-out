@@ -139,10 +139,12 @@ public class ReportServiceImpl implements ReportService {
             begin = begin.plusDays(1);
             dateList.add(begin);
         }
+
         //每天订单总数集合
         List<Integer> orderCountList = new ArrayList<>();
         //每天有效订单数集合
         List<Integer> validOrderCountList = new ArrayList<>();
+
         for (LocalDate date : dateList) {
             LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
             LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
@@ -161,7 +163,9 @@ public class ReportServiceImpl implements ReportService {
         if(totalOrderCount != 0){
             orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
         }
-        return OrderReportVO.builder()
+
+        return OrderReportVO
+                .builder()
                 .dateList(StringUtils.join(dateList, ","))
                 .orderCountList(StringUtils.join(orderCountList, ","))
                 .validOrderCountList(StringUtils.join(validOrderCountList, ","))
@@ -169,7 +173,6 @@ public class ReportServiceImpl implements ReportService {
                 .validOrderCount(validOrderCount)
                 .orderCompletionRate(orderCompletionRate)
                 .build();
-
     }
 
     /**
